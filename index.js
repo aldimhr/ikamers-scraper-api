@@ -3,7 +3,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 const cors = require('cors');
 const productRouter = require('./routing/product');
-const puppeteer = require('puppeteer');
 
 app.use(cors());
 
@@ -14,7 +13,9 @@ app.get('/', (req, res) => {
    res.json({
       info: 'API for scraping',
       endpoint: {
-         '/v1/shopee/product?url=""': 'Scrape by product',
+         shopee: {
+            '/v1/shopee/product?url=<URL>': 'Scrape by product',
+         },
       },
    });
 });

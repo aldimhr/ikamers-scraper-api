@@ -5,7 +5,7 @@ const app = express();
 const puppeteer = require('puppeteer');
 const UserAgent = require('user-agents');
 
-let getShopeeData = async (url, res) => {
+let getShopeeProduct = async (url, res) => {
    // user agent
    const userAgent = new UserAgent({
       deviceCategory: 'desktop',
@@ -101,5 +101,5 @@ function filterRes({ name, models, description, images }) {
 }
 
 // let url = 'https://shopee.co.id/Buket-Bunga-Hias-Plastik-Bunga-Mawar-MINI-Tanaman-Artificial-Buket-wisuda-Bunga-wisuda-i.93886339.5375016637';
-// getShopeeData(url);
-module.exports = { getShopeeData };
+// getShopeeProduct(url);
+module.exports = { getShopeeProduct };
