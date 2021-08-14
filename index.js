@@ -11,10 +11,9 @@ app.use(express.urlencoded({ extended: true })); // for parsing application/x-ww
 
 app.get('/', (req, res) => {
    res.json({
-      info: 'API for scraping',
-      endpoint: {
+      path: {
          shopee: {
-            '/v1/shopee/product?url=<URL>': 'Scrape by product',
+            '/api/v1/shopee/product?url=<URL>': 'Scrape product',
          },
       },
    });
