@@ -9,7 +9,9 @@ app.use(cors());
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.get('/', (req, res) => {
+app.use(productRouter);
+
+app.get('/*', (req, res) => {
    res.json({
       path: {
          shopee: {
@@ -18,8 +20,6 @@ app.get('/', (req, res) => {
       },
    });
 });
-
-app.use(productRouter);
 
 app.listen(port, () => {
    console.log(`server running on http://localhost:${port}`);
