@@ -1,0 +1,173 @@
+{
+   "openapi": "3.0.2",
+   "info": {
+      "title": "Ikamers scrapper API",
+      "version": "1.0",
+      "description": "API for scraping product e-commerce",
+      "license": { "name": "MIT", "url": "https://opensource.org/licenses/MIT" }
+   },
+   "servers": [{ "url": "https://ikamers-web-scraper.herokuapp.com/api/v1" }],
+   "paths": {
+      "/shopee/product?url={productURL}": {
+         "get": {
+            "tags": ["product"],
+            "summary": "Get product detail",
+            "parameters": [
+               {
+                  "schema": {
+                     "type": "string",
+                     "nullable": false
+                  },
+                  "name": "productURL",
+                  "required": true,
+                  "in": "path"
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "Get Product Detail Success",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/product-response"
+                        },
+                        "examples": {
+                           "success": {
+                              "description": "Example success get product detail",
+                              "value": {
+                                 "status": 1,
+                                 "message": "success",
+                                 "variants": [
+                                    {
+                                       "name": "Daily (LBN015)",
+                                       "name2": "Allsize",
+                                       "stock": 0,
+                                       "status": 1,
+                                       "price": 45000
+                                    }
+                                 ],
+                                 "description": "✓AMBIL SATU PCS UDAH BISA HARGA PARTAI\n\nyang ini daster busui jumbo semata kaki ya kakak...LD 120\n",
+                                 "images": ["https://cf.shopee.co.id/file/1e04d11788a2c5ff4ca1048757a872d1"]
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/shopee/shop?url={shopURL}": {
+         "get": {
+            "tags": ["shop"],
+            "summary": "Get shop detail",
+            "parameters": [
+               {
+                  "schema": {
+                     "type": "string",
+                     "nullable": false
+                  },
+                  "name": "shopURL",
+                  "required": true,
+                  "in": "path"
+               }
+            ],
+            "responses": {}
+         }
+      },
+      "/tokopedia/product?url={productURL}": {
+         "get": {
+            "tags": ["product"],
+            "summary": "Get product detail",
+            "parameters": [
+               {
+                  "schema": {
+                     "type": "string",
+                     "nullable": false
+                  },
+                  "name": "productURL",
+                  "required": true,
+                  "in": "path"
+               }
+            ],
+            "responses": {}
+         }
+      },
+      "/tokopedia/shop?url={shopURL}": {
+         "get": {
+            "tags": ["shop"],
+            "summary": "Get all product URL in shop",
+            "parameters": [
+               {
+                  "schema": {
+                     "type": "string",
+                     "nullable": false
+                  },
+                  "name": "shopURL",
+                  "required": true,
+                  "in": "path"
+               }
+            ],
+            "responses": {}
+         }
+      }
+   },
+   "components": {
+      "schemas": {
+         "product-response": {
+            "type": "object",
+            "properties": {
+               "status": {
+                  "type": "integer"
+               },
+               "message": {
+                  "type": "string"
+               },
+               "data": {
+                  "type": "object",
+
+                  "properties": {
+                     "name": {
+                        "type": "string"
+                     },
+                     "variants": {
+                        "type": "array",
+                        "items": {
+                           "type": "object",
+                           "properties": {
+                              "name": {
+                                 "title": "name of variant",
+                                 "type": "string"
+                              },
+                              "name2": {
+                                 "title": "name of second variant",
+                                 "type": "string"
+                              },
+                              "stock": {
+                                 "type": "integer"
+                              },
+                              "status": {
+                                 "type": "integer"
+                              },
+                              "price": {
+                                 "type": "integer"
+                              }
+                           }
+                        }
+                     },
+                     "description": {
+                        "type": "string"
+                     },
+                     "images": {
+                        "type": "array",
+                        "items": {
+                           "type": "string"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
