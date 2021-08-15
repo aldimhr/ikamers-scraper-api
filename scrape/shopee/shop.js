@@ -42,6 +42,15 @@ let ShopeeShop = async (url, res) => {
       // wait browser
       const [page] = await browser.pages();
 
+      await page.setRequestInterception(true);
+      page.on('request', async (request) => {
+         if (request.resourceType() == 'image') {
+            await request.abort();
+         } else {
+            await request.continue();
+         }
+      });
+
       // get response body
       page.on('response', async (response) => {
          if (response.url().includes('get_shop_info?shopid=')) {
@@ -71,11 +80,11 @@ let ShopeeShop = async (url, res) => {
       await page.waitForSelector('.shop-search-result-view');
 
       // check if cannot get response data
-      if (product == null || product == undefined || shop == null || shop == undefined) {
-         console.log('S - cannot get response data, refresh page');
-         await page.reload();
-         await page.waitForSelector('.shop-search-result-view');
-      }
+      // if (product == null || product == undefined || shop == null || shop == undefined) {
+      //    console.log('S - cannot get response data, refresh page');
+      //    await page.reload();
+      //    await page.waitForSelector('.shop-search-result-view');
+      // }
 
       // parse body response
       let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = (await JSON.parse(shop)).data;
