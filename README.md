@@ -10,6 +10,10 @@ Get product and shop details
   GET /api/v1/shopee/product?url=<URL>
 ```
 
+```http
+  GET /api/v1/shopee/shop?url=<URL>
+```
+
 | Parameter | Type     | Description  |
 | :-------- | :------- | :----------- |
 | `URL`     | `string` | **Required** |
