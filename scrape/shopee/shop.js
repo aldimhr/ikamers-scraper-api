@@ -87,26 +87,7 @@ let ShopeeShop = async (url, res) => {
       // WAIT SELECTOR
       await page.waitForSelector('.shop-search-result-view');
 
-      // check if cannot get response data
-      // if (product == null || product == undefined || shop == null || shop == undefined) {
-      //    console.log('S - cannot get response data, refresh page');
-      //    await page.reload();
-      //    await page.waitForSelector('.shop-search-result-view');
-      // }
-
       // parse body response
-      let shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
-         itemid,
-         name,
-         images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
-         stock,
-         sold,
-         likes,
-         views,
-         price: price / 100000,
-         item_rating,
-      }));
-
       let {
          name,
          shopid,
@@ -146,6 +127,19 @@ let ShopeeShop = async (url, res) => {
          products: [],
       };
 
+      let shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
+         link: `https://shopee.co.id/${name.split(' ')[0]}-i.${shopInfo.shopid}.${itemid}`,
+         itemid,
+         name,
+         images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
+         stock,
+         sold,
+         likes,
+         views,
+         price: price / 100000,
+         item_rating,
+      }));
+
       // GET TOTAL PAGES
       let pages = await page.$eval('.shopee-mini-page-controller__total', (el) => el.innerText);
 
@@ -176,6 +170,7 @@ let ShopeeShop = async (url, res) => {
             // FILTER RESPONSE BODY
             shopproduct = (await JSON.parse(product)).items.map(
                ({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
+                  link: `https://shopee.co.id/${name.split(' ')[0]}-i.${shopInfo.shopid}.${itemid}`,
                   itemid,
                   name,
                   images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
