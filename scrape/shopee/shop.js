@@ -96,7 +96,25 @@ let ShopeeShop = async (url, res) => {
       // GET TOTAL PAGES
       let pages = await page.$eval('.shopee-mini-page-controller__total', (el) => el.innerText);
 
-      for (let i = 1; i < pages; i++) {
+      if (pages > 1) {
+         for (let i = 1; i < pages; i++) {
+            // GET ALL LINK PRODUCTS
+            let hrefs = await page.evaluate(() => {
+               const links = Array.from(document.querySelectorAll('a[data-sqe="link"]'));
+               return links.map((link) => link.href);
+            });
+
+            //  PUSH TO PRODUCTS
+            shopInfo.products.push(hrefs);
+
+            // CLICK NEXT PAGE
+            const [nextpage] = await page.$x(`//button[contains(text(), "${i + 1}")]`);
+            await nextpage.click();
+
+            // SCROLL
+            await autoScroll(page);
+         }
+      } else {
          // GET ALL LINK PRODUCTS
          let hrefs = await page.evaluate(() => {
             const links = Array.from(document.querySelectorAll('a[data-sqe="link"]'));
@@ -105,13 +123,6 @@ let ShopeeShop = async (url, res) => {
 
          //  PUSH TO PRODUCTS
          shopInfo.products.push(hrefs);
-
-         // CLICK NEXT PAGE
-         const [nextpage] = await page.$x(`//button[contains(text(), "${i + 1}")]`);
-         await nextpage.click();
-
-         // SCROLL
-         await autoScroll(page);
       }
 
       shopInfo.products = [].concat.apply([], shopInfo.products);
@@ -120,7 +131,7 @@ let ShopeeShop = async (url, res) => {
       res.json({ status: 1, message: 'success', data: shopInfo });
    } catch (err) {
       // send response
-      res.json({ status: 0, message: 'error', data: { message: err.message } });
+      res.json({ status: 0, message: 'error', data: { message: err } });
    } finally {
       // close browser
       await browser.close();
@@ -149,5 +160,5 @@ async function autoScroll(page) {
 }
 
 // let url = 'https://shopee.co.id/qtakasimura?categoryId=100011&itemId=3892481906';
-// getShopeeProduct(url);
+// ShopeeShop(url);
 module.exports = { ShopeeShop };
