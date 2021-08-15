@@ -24,6 +24,8 @@ app.get('/', (req, res) => {
 app.use(productRouter);
 app.use(shopRouter);
 
-app.listen(port, () => {
+let server = app.listen(port, () => {
    console.log(`server running on http://localhost:${port}`);
 });
+
+server.timeout = 1000 * 60 * 10;
