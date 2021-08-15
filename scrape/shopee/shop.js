@@ -17,7 +17,7 @@ let ShopeeShop = async (url, res) => {
       // defaultViewport: null,
       // headless: false,
       headless: true,
-      // slowMo: 250,
+      // slowMo: 50,
       args: [
          '--user-agent=' + userAgent + '',
          '--start-maximized',
@@ -52,6 +52,7 @@ let ShopeeShop = async (url, res) => {
       });
 
       // get response body
+
       page.on('response', async (response) => {
          if (response.url().includes('get_shop_info?shopid=')) {
             try {
@@ -74,7 +75,14 @@ let ShopeeShop = async (url, res) => {
       });
 
       // goto url
-      await page.goto(url);
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+      // await page.waitForResponse((response) => {
+      //    return response.url().includes('get_shop_info?shopid=');
+      // });
+      await page.waitForResponse((response) => {
+         return response.url().includes('search_items?by=pop') && response.url().includes('newest=0') && !response.url().includes('only_soldout');
+      });
 
       // WAIT SELECTOR
       await page.waitForSelector('.shop-search-result-view');
@@ -87,7 +95,7 @@ let ShopeeShop = async (url, res) => {
       // }
 
       // parse body response
-      let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = (await JSON.parse(shop)).data;
+      // let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = (await JSON.parse(shop)).data;
 
       let shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
          itemid,
@@ -102,19 +110,19 @@ let ShopeeShop = async (url, res) => {
       }));
 
       let shopInfo = {
-         name,
-         shopid,
-         place,
-         shop_location,
-         is_shopee_verified,
-         total_product: item_count,
-         rating: rating_star,
-         followers: follower_count,
-         rating: {
-            bad: rating_bad,
-            good: rating_good,
-            normal: rating_normal,
-         },
+         // name,
+         // shopid,
+         // place,
+         // shop_location,
+         // is_shopee_verified,
+         // total_product: item_count,
+         // rating: rating_star,
+         // followers: follower_count,
+         // rating: {
+         //    bad: rating_bad,
+         //    good: rating_good,
+         //    normal: rating_normal,
+         // },
          products: [],
       };
 
