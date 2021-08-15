@@ -14,7 +14,7 @@ let ShopeeShop = async (url, res) => {
 
    // puppeteer config
    let browser = await puppeteer.launch({
-      defaultViewport: null,
+      // defaultViewport: null,
       // headless: false,
       headless: true,
       // slowMo: 250,
@@ -36,36 +36,61 @@ let ShopeeShop = async (url, res) => {
 
    // shop
    let shop;
+   let product;
 
    try {
       // wait browser
       const [page] = await browser.pages();
 
       // get response body
-      page.on('response', (response) => {
+      page.on('response', async (response) => {
          if (response.url().includes('get_shop_info?shopid=')) {
-            response.text().then(function (textBody) {
-               shop = textBody;
-            });
+            try {
+               await response.text().then(function (textBody) {
+                  shop = textBody;
+               });
+            } catch (err) {
+               console.log(err);
+            }
+         }
+         if (response.url().includes('search_items?by=pop') && response.url().includes('newest=0') && !response.url().includes('only_soldout')) {
+            try {
+               await response.text().then(function (textBody) {
+                  product = textBody;
+               });
+            } catch (err) {
+               console.log(err);
+            }
          }
       });
 
       // goto url
       await page.goto(url);
 
-      // wait
-      await page.waitForXPath("//span[contains(text(), 'Semua Produk')]");
+      // WAIT SELECTOR
+      await page.waitForSelector('.shop-search-result-view');
 
       // check if cannot get response data
-      if (shop == null || shop == undefined) {
+      if (product == null || product == undefined || shop == null || shop == undefined) {
          console.log('S - cannot get response data, refresh page');
          await page.reload();
-         await page.waitForXPath("//span[contains(text(), 'Semua Produk')]");
+         await page.waitForSelector('.shop-search-result-view');
       }
 
       // parse body response
-      let shopdata = await JSON.parse(shop);
-      let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = shopdata.data;
+      let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = (await JSON.parse(shop)).data;
+
+      let shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
+         itemid,
+         name,
+         images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
+         stock,
+         sold,
+         likes,
+         views,
+         price: price / 100000,
+         item_rating,
+      }));
 
       let shopInfo = {
          name,
@@ -84,45 +109,78 @@ let ShopeeShop = async (url, res) => {
          products: [],
       };
 
-      // CLICK 'SEMUA PRODUK'
-      const [semuaproduk] = await page.$x('//span[contains(text(), "Semua Produk")]');
-      await semuaproduk.click();
-
-      // WAIT
-      await page.waitForXPath("//div[contains(text(), 'Populer')]");
-
-      await autoScroll(page);
-
       // GET TOTAL PAGES
       let pages = await page.$eval('.shopee-mini-page-controller__total', (el) => el.innerText);
 
       if (pages > 1) {
-         for (let i = 1; i < pages; i++) {
-            // GET ALL LINK PRODUCTS
-            let hrefs = await page.evaluate(() => {
-               const links = Array.from(document.querySelectorAll('a[data-sqe="link"]'));
-               return links.map((link) => link.href);
+         for (let i = 1; i <= pages; i++) {
+            if (i == 1) {
+               shopInfo.products.push(shopproduct);
+               continue;
+            }
+            // get response body
+            page.on('response', async (response) => {
+               if (response.url().includes('search_items?by=pop') && response.url().includes(`newest=${30 * (i - 1)}`) && !response.url().includes('only_soldout')) {
+                  try {
+                     await response.text().then(function (textBody) {
+                        product = textBody;
+                     });
+                  } catch (err) {
+                     console.log(err);
+                  }
+               }
             });
 
-            //  PUSH TO PRODUCTS
-            shopInfo.products.push(hrefs);
-
             // CLICK NEXT PAGE
-            const [nextpage] = await page.$x(`//button[contains(text(), "${i + 1}")]`);
-            await nextpage.click();
+            await page.click(
+               '#main > div > div._193wCc > div > div.shop-page > div > div.container > div.shop-page__all-products-section > div.shop-all-product-view > div.shopee-sort-bar > div.shopee-mini-page-controller > button.shopee-button-outline.shopee-mini-page-controller__next-btn'
+            );
 
-            // SCROLL
-            await autoScroll(page);
+            // FILTER RESPONSE BODY
+            shopproduct = (await JSON.parse(product)).items.map(
+               ({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
+                  itemid,
+                  name,
+                  images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
+                  stock,
+                  sold,
+                  likes,
+                  views,
+                  price: price / 100000,
+                  item_rating,
+               })
+            );
+
+            shopInfo.products.push(shopproduct);
          }
       } else {
-         // GET ALL LINK PRODUCTS
-         let hrefs = await page.evaluate(() => {
-            const links = Array.from(document.querySelectorAll('a[data-sqe="link"]'));
-            return links.map((link) => link.href);
-         });
+         // get response body
+         // page.on('response', async (response) => {
+         //    if (response.url().includes('search_items?by=pop') && response.url().includes('newest=0') && !response.url().includes('only_soldout')) {
+         //       try {
+         //          await response.text().then(function (textBody) {
+         //             product = textBody;
+         //          });
+         //       } catch (err) {
+         //          console.log(err);
+         //       }
+         //    }
+         // });
 
-         //  PUSH TO PRODUCTS
-         shopInfo.products.push(hrefs);
+         // FILTER RESPONSE BODY
+         // shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
+         //    itemid,
+         //    name,
+         //    images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
+         //    stock,
+         //    sold,
+         //    likes,
+         //    views,
+         //    price: price / 100000,
+         //    item_rating,
+         // }));
+
+         shopInfo.products.push(shopproduct);
       }
 
       shopInfo.products = [].concat.apply([], shopInfo.products);
@@ -131,7 +189,7 @@ let ShopeeShop = async (url, res) => {
       res.json({ status: 1, message: 'success', data: shopInfo });
    } catch (err) {
       // send response
-      res.json({ status: 0, message: 'error', data: { message: err } });
+      res.json({ status: 0, message: 'error', data: { message: err.message } });
    } finally {
       // close browser
       await browser.close();
@@ -139,26 +197,7 @@ let ShopeeShop = async (url, res) => {
    }
 };
 
-// auto scroll
-async function autoScroll(page) {
-   await page.evaluate(async () => {
-      await new Promise((resolve, reject) => {
-         var totalHeight = 0;
-         var distance = 100;
-         var timer = setInterval(() => {
-            var scrollHeight = document.body.scrollHeight;
-            window.scrollBy(0, distance);
-            totalHeight += distance;
-
-            if (totalHeight >= scrollHeight) {
-               clearInterval(timer);
-               resolve();
-            }
-         }, 150);
-      });
-   });
-}
-
-// let url = 'https://shopee.co.id/qtakasimura?categoryId=100011&itemId=3892481906';
+// let url = 'https://shopee.co.id/onetrush_store?categoryId=100011&itemId=8979682687';
+// let url = 'https://shopee.co.id/qtakasimura?categoryId=100017&itemId=8966368216';
 // ShopeeShop(url);
 module.exports = { ShopeeShop };
