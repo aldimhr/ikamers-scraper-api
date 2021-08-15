@@ -64,7 +64,8 @@ let ShopeeShop = async (url, res) => {
       }
 
       // parse body response
-      let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = (await JSON.parse(shop)).data;
+      let shopdata = await JSON.parse(shop);
+      let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = shopdata.data;
 
       let shopInfo = {
          name,
