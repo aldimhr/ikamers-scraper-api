@@ -52,9 +52,8 @@ let ShopeeShop = async (url, res) => {
       });
 
       // get response body
-
       page.on('response', async (response) => {
-         if (response.url().includes('get_shop_info?shopid=')) {
+         if (response.url().includes('get_shop_detail?username')) {
             try {
                await response.text().then(function (textBody) {
                   shop = textBody;
@@ -77,9 +76,10 @@ let ShopeeShop = async (url, res) => {
       // goto url
       await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-      // await page.waitForResponse((response) => {
-      //    return response.url().includes('get_shop_info?shopid=');
-      // });
+      // WAIT RESPONSE
+      await page.waitForResponse((response) => {
+         return response.url().includes('get_shop_detail?username');
+      });
       await page.waitForResponse((response) => {
          return response.url().includes('search_items?by=pop') && response.url().includes('newest=0') && !response.url().includes('only_soldout');
       });
@@ -95,8 +95,6 @@ let ShopeeShop = async (url, res) => {
       // }
 
       // parse body response
-      // let { name, shopid, place, is_shopee_verified, item_count, rating_star, follower_count, rating_bad, rating_good, rating_normal, shop_location } = (await JSON.parse(shop)).data;
-
       let shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
          itemid,
          name,
@@ -109,20 +107,42 @@ let ShopeeShop = async (url, res) => {
          item_rating,
       }));
 
+      let {
+         name,
+         shopid,
+         userid,
+         place,
+         is_shopee_verified,
+         rating_bad,
+         rating_good,
+         rating_normal,
+         description,
+         cancellation_rate,
+         item_count,
+         follower_count,
+         account: { following_count },
+         rating_star,
+         shop_location,
+      } = (await JSON.parse(shop)).data;
+
       let shopInfo = {
-         // name,
-         // shopid,
-         // place,
-         // shop_location,
-         // is_shopee_verified,
-         // total_product: item_count,
-         // rating: rating_star,
-         // followers: follower_count,
-         // rating: {
-         //    bad: rating_bad,
-         //    good: rating_good,
-         //    normal: rating_normal,
-         // },
+         name,
+         shopid,
+         userid,
+         place,
+         shop_location,
+         description,
+         is_shopee_verified,
+         cancellation_rate,
+         total_product: item_count,
+         rating: rating_star,
+         followers: follower_count,
+         following: following_count,
+         rating: {
+            bad: rating_bad,
+            good: rating_good,
+            normal: rating_normal,
+         },
          products: [],
       };
 
@@ -171,32 +191,6 @@ let ShopeeShop = async (url, res) => {
             shopInfo.products.push(shopproduct);
          }
       } else {
-         // get response body
-         // page.on('response', async (response) => {
-         //    if (response.url().includes('search_items?by=pop') && response.url().includes('newest=0') && !response.url().includes('only_soldout')) {
-         //       try {
-         //          await response.text().then(function (textBody) {
-         //             product = textBody;
-         //          });
-         //       } catch (err) {
-         //          console.log(err);
-         //       }
-         //    }
-         // });
-
-         // FILTER RESPONSE BODY
-         // shopproduct = (await JSON.parse(product)).items.map(({ item_basic: { itemid, name, images, stock, historical_sold: sold, liked_count: likes, view_count: views, price, item_rating } }) => ({
-         //    itemid,
-         //    name,
-         //    images: images.map((image) => 'https://cf.shopee.co.id/file/' + image),
-         //    stock,
-         //    sold,
-         //    likes,
-         //    views,
-         //    price: price / 100000,
-         //    item_rating,
-         // }));
-
          shopInfo.products.push(shopproduct);
       }
 
