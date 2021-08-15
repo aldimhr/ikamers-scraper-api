@@ -3,6 +3,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const cors = require('cors');
 const productRouter = require('./routing/product');
+const shopRouter = require('./routing/shop');
 
 app.use(cors());
 
@@ -14,12 +15,14 @@ app.get('/', (req, res) => {
       path: {
          shopee: {
             '/api/v1/shopee/product?url=<URL>': 'Scrape product',
+            '/api/v1/shopee/shop?url=<URL>': 'Scrape shop',
          },
       },
    });
 });
 
 app.use(productRouter);
+app.use(shopRouter);
 
 app.listen(port, () => {
    console.log(`server running on http://localhost:${port}`);
