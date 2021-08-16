@@ -33,8 +33,10 @@ Get product and shop details
 
 ## Roadmap
 
--  Add shop scraper
--  Add other e-commerce scraper
+[x] Add shop scraper
+[ ] Add tokopedia product scraper
+[ ] Add tokopedia shop scraper
+[ ] Add other e-commerce scraper
 
 ## License
 
