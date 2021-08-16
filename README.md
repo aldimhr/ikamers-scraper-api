@@ -28,7 +28,7 @@ Get product and shop details
    git clone https://github.com/aldimhr/ikamers-scraper-api.git
    ```
 
-2. Install dependencies (`npm install`)
+2. Install dependencies `npm install`
 3. `npm start` to run local dev
 
 ## Roadmap
