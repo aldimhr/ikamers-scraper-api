@@ -64,7 +64,7 @@ let getShopeeProduct = async (url, res) => {
       }
 
       // parse body response
-      let dataRes = (await JSON.parse(item)).item;
+      let dataRes = (await JSON.parse(item)).data;
 
       // send response
       res.json({ status: 1, message: 'success', data: filterRes(dataRes) });
@@ -79,14 +79,14 @@ let getShopeeProduct = async (url, res) => {
 };
 
 // filter data response
-function filterRes({ name, models, description, images }) {
-   let variants = [];
-
+function filterRes({ name, models, description, images, categories }) {
+   // filter images
    const img = images.map((image) => {
       return 'https://cf.shopee.co.id/file/' + image;
    });
 
    // filter models
+   let variants = [];
    models.forEach((el) => {
       let splitName;
       if (el.name.indexOf(',') > -1) {
@@ -97,7 +97,10 @@ function filterRes({ name, models, description, images }) {
       }
    });
 
-   return { name, variants, description, images: img };
+   // categories
+   let category = categories.map(({ display_name }) => display_name).join(' - ');
+
+   return { name, variants, description, images: img, category };
 }
 
 // let url = 'https://shopee.co.id/Buket-Bunga-Hias-Plastik-Bunga-Mawar-MINI-Tanaman-Artificial-Buket-wisuda-Bunga-wisuda-i.93886339.5375016637';
